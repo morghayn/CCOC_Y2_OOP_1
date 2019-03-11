@@ -1,4 +1,4 @@
-I#include <iostream>
+#include <iostream>
 #include <conio.h>
 #include <sstream>
 #include <fstream>
@@ -16,33 +16,34 @@ I#include <iostream>
 using namespace std;
 
 TicketCreate::TicketCreate(string title, int time[]) {
-    ticketTitle = title;
-    FlightCost = "Cost:EUR0000.00";
-    DepartureAirport =  ArrivalAirport = "???";
-    DepartureDate = ArrivalDate = "00.00.0000";
-    DepartureTime = ArrivalTime = "00:00";
-    FlightDuration = "EXPECTED FLIGHT TIME: 0Hours 0Minutes";
-    for (int i = 0; i < 5; i++) dLim[i] = time[i];
-    for (int i = 0; i < 7; i++) fCheck[i] = 0;
-    fCheck[7] = 1; quitProgram = 0; backBool = 0;
+    tikName = title,
+    flCost = "Cost:EUR0000.00",
+    flDur = "EXPECTED FLIGHT TIME: 0Hours 0Minutes",
+    depCode = ariCode = "???",
+    depDate = ariDate = "00.00.0000",
+    depTime = ariTime = "00:00";
+
+    for (int i = 0; i < 5; i++)
+        depChk[i] = time[i];
+    for (int i = 0; i < 7; i++)
+        fCheck[i] = 0;
+
+    fCheck[7] = 1, quitProgram = 0, backBool = 0;
     Print(); Print(1); ticketControl = 0; Control();
 }
 
 void TicketCreate::SummaryIntro(string name, string depAirport, string arrAirport) {
     bool summaryBreak = 0;
     while(summaryBreak == 0){
-        system("CLS"); bool summaryBreakConfirm = 0;
-        string FillOne(71,'\xDB'); string FillTwo(67,' ');
-        for(int i = 0; i < 17; i++) gotoXY(22,6+i,FillOne,0);
-        for(int i = 0; i < 15; i++) gotoXY(24,7+i,FillTwo,0);
+        bool summaryBreakConfirm = 0;
+        system("CLS"); Draw(2,24,6,71,17);
         gotoXY(48,9,"[Journey Summary]",0);
         gotoXY(28,13,("Dear " + name + ","),0);
         gotoXY(28,15,"Please find enclosed your boarding passes for your flight",0);
         gotoXY(28,16,("from " + depAirport + " to " + arrAirport + "."),0);
         gotoXY(28,18,"Press any key to view your journey summary....",0);
         cin.get(); system("CLS"); int c = 0; int s = 0; int h;
-        for(int i = 0; i < 17; i++) gotoXY(22,6+i,FillOne,0);
-        for(int i = 0; i < 15; i++) gotoXY(24,7+i,FillTwo,0);
+        Draw(2,24,6,71,17);
             while(summaryBreakConfirm == 0) {
                 c = 0;
                 gotoXY(39,11,"[Are you sure you want to continue?]",0);
@@ -63,23 +64,26 @@ void TicketCreate::SummaryIntro(string name, string depAirport, string arrAirpor
         }
     }
 }
-TicketCreate::TicketCreate(string name, float TotalCost, char **first, char **second, string duration, string timeone, string timetwo) {
-    float rev = (TotalCost / 10); stringstream ss; ss << std::fixed << std::setprecision(2) << (rev); string revenue = ss.str();
-    float temprevten = (rev*10); stringstream sf; sf << std::fixed << std::setprecision(2) << (temprevten); string moneytot = sf.str();
-    ticketTitle = "[Summary Ticket]";
-    FlightCost = "COST:EUR" + moneytot;
-    DepartureAirport = f[0];
-    DepartureDate = f[1];
-    DepartureTime = timeone;
-    ArrivalAirport = s[3];
-    ArrivalDate = s[4];
-    ArrivalTime = timetwo;
-    quitProgram = 0; backBool = 0;
-    FlightDuration = duration;
+TicketCreate::TicketCreate(string name, float TotalCost, char **first, char **second, int fTime[], int sTime[]) {
+    float rev = (TotalCost / 10);
+    stringstream ss; ss << std::fixed << std::setprecision(2) << (rev); string revenue = ss.str();
+    float temprevten = (rev*10);
+    stringstream sf; sf << std::fixed << std::setprecision(2) << (temprevten); string moneytot = sf.str();
+
+    for (int i = 0; i < 7; i++)
+        fCheck[i] = true;
+    fCheck[7] = 0;
+
+    char **f = first, **s = second;
+    SummaryIntro(name,f[0],s[3]);
+
+    CheckDateAndTime(fTime,sTime,1);
+    tikName = "[Summary Ticket]", flCost = "COST:EUR" + moneytot;
+    depCode = f[0], depDate = f[1], depTime = f[2],
+    ariCode = s[3], ariDate = s[4], ariTime = s[5];
+    quitProgram = 0, backBool = 0;
+
     Print(); Print(9); ticketControl = 1; Control();
-    for (int i = 0; i < 7; i++) fCheck[i] = true;
-    fCheck[7] = 0; char **f = first; char **s = second;
-        SummaryIntro(name,f[0],s[3]);
 
     // -> Writing Data to CSV.
     PrintFileSpalsh();
@@ -87,7 +91,7 @@ TicketCreate::TicketCreate(string name, float TotalCost, char **first, char **se
     int myYear = localTime.wYear, myMonth = localTime.wMonth, myDay = localTime.wDay;
 	ofstream myFile; myFile.open("FlightLog.csv", ios_base::app);
     myFile << revenue << "," << myYear << "," << myMonth << "," <<  myDay << "," <<  name << "," <<  moneytot;
-    myFile << "," <<  f[0] << "," <<  f[1] << "," <<  timeone << "," <<  s[3] << "," <<  s[4] << "," <<  ArrivalTime << "," <<  duration << "," <<  endl;
+    myFile << "," <<  f[0] << "," <<  f[1] << "," <<  depTime << "," <<  s[3] << "," <<  s[4] << "," <<  ariTime << "," <<  flDur << "," <<  endl;
 	myFile.close();
 }
 void TicketCreate::PrintFileSpalsh() {
@@ -101,38 +105,15 @@ void TicketCreate::PrintFileSpalsh() {
     cin.get(); Sleep(1000);
 }
 
-int* TicketCreate::TicketTime() {
-    int* arr = new int[10];
-        arr[0] = arrivalYear; arr[1] = arrivalMonth; arr[2] = arrivalDay; arr[3] = arrivalHour; arr[4] = arrivalMinute;
-        arr[5] = departureYear; arr[6] = departureMonth; arr[7] = departureDay; arr[8] = departureHour; arr[9] = departureMinute;
-    return arr;
-}
-char **TicketCreate::TicketData() {
-    string transfer; int x = 0; char **arr=new char*[6];
-    while(x < 6) {
-        switch(x) {
-        case 0: transfer = DepartureAirport; break;
-        case 1: transfer = DepartureDate; break;
-        case 2: transfer = DepartureTime; break;
-        case 3: transfer = ArrivalAirport; break;
-        case 4: transfer = ArrivalDate; break;
-        case 5: transfer = ArrivalTime; break;
-        default: break;
-        } arr[x] = new char[transfer.length()];
-        for (int i=0; i<transfer.length()+1; i++) {arr[x][i] = transfer[i];}
-        x++;
-    } return arr;
-}
-
 void TicketCreate::Control(){
     int s = 1; int c = 0;
     while(quitProgram == 0 && ticketControl == 0) {
         c = 0;
         switch(c=getch()) {
-        case KEY_UP:    if (s==1) s=9; else if (s==2) s=8; else if (s==3) s=6; else if (s==9) s=7; else s-=3; break;
-        case KEY_LEFT:  if (s==1) s=9; else s-=1; break;
+        case KEY_UP: if (s==1) s=9; else if (s==2) s=8; else if (s==3) s=6; else if (s==9) s=7; else s-=3; break;
+        case KEY_LEFT: if (s==1) s=9; else s-=1; break;
         case KEY_RIGHT: if (s==9) s=1; else s+=1; break;
-        case KEY_DOWN:  if (s==6) s=3; else if (s==7) s=9; else if (s==8) s=2; else if (s==9) s=1; else s+=3; break;
+        case KEY_DOWN: if (s==6) s=3; else if (s==7) s=9; else if (s==8) s=2; else if (s==9) s=1; else s+=3; break;
         case KEY_ENTER: ExecuteSetter(s); break;
         default: break;
         } Print(s); Sleep(20);
@@ -148,33 +129,40 @@ void TicketCreate::Control(){
     }
 }
 void TicketCreate::Print() {
-    ShowConsoleCursor(0); system("CLS"); Draw(1,24,7,71,13);
-    gotoXY(51,5,ticketTitle,0); gotoXY(27,9,"Boarding Pass",0); gotoXY(51,9,"CLASS: ECONOMY",0);
-    gotoXY(27,11,"FROM",0); gotoXY(51,11,"DATE",0); gotoXY(76,11,"TIME",0); gotoXY(27,14,"To",0);
+    system("CLS"); Draw(1,24,7,71,13);
+    gotoXY(51,5,tikName,0);
+    gotoXY(27,9,"Boarding Pass",0);
+    gotoXY(51,9,"CLASS: ECONOMY",0);
+    gotoXY(27,11,"FROM",0);
+    gotoXY(51,11,"DATE",0);
+    gotoXY(76,11,"TIME",0);
+    gotoXY(27,14,"To",0);
 }
 void TicketCreate::Print(int x) {
     int i = 0; int h; string wipeEditor(120,' ');
     while(i < 12) {
         if (i == x) h = 1; else h = 0;
         switch(i) {
-            case 0: gotoXY(0,22,wipeEditor,0);          break;
-            case 1: gotoXY(76,9,FlightCost,h);         break;
-            case 2: gotoXY(27,12,DepartureAirport,h);  break;
-            case 3: gotoXY(51,12,DepartureDate,h);     break;
-            case 4: gotoXY(76,12,DepartureTime,h);     break;
-            case 5: gotoXY(27,15,ArrivalAirport,h);    break;
-            case 6: gotoXY(51,15,ArrivalDate,h);       break;
-            case 7: gotoXY(76,15,ArrivalTime,h);       break;
-            case 8: gotoXY(27,22,"Back",h);             break;
-            case 9: gotoXY(84,22,"Continue",h);         break;
-            case 10: gotoXY(27,17,FlightDuration, h);   break;
+            case 0: gotoXY(0,22,wipeEditor,0); break;
+            case 1: gotoXY(76,9,flCost,h); break;
+            case 2: gotoXY(27,12,depCode,h); break;
+            case 3: gotoXY(51,12,depDate,h); break;
+            case 4: gotoXY(76,12,depTime,h); break;
+            case 5: gotoXY(27,15,ariCode,h); break;
+            case 6: gotoXY(51,15,ariDate,h); break;
+            case 7: gotoXY(76,15,ariTime,h); break;
+            case 8: gotoXY(27,22,"Back",h); break;
+            case 9: gotoXY(84,22,"Continue",h); break;
+            case 10: gotoXY(27,17,flDur, h); break;
             case 11: gotoXY(0,0); break;
         default: break;
         } i++;
         if (fCheck[2] == true && fCheck[3] == true && fCheck[7] == true) DepartureCheck();
-        if (fCheck[2] == true && fCheck[3] == true && fCheck[5] == true && fCheck[6] == true && fCheck[7] == true) CheckDateAndTime();
+        if (fCheck[2] == true && fCheck[3] == true && fCheck[5] == true && fCheck[6] == true && fCheck[7] == true) CheckDateAndTime(TicketTime(),TicketTime(),0);
     }
 }
+
+
 
 void TicketCreate::Continue() {
     bool dontContinue = false;
@@ -193,19 +181,18 @@ void TicketCreate::ExecuteSetter(int s) {
            for (int i = 0; i < 7; i++) {
                 if (char(priceString[i-1]) == 32 && i < 3) {if (char(priceString[i]) == 48) priceString[i] = char(' ');}
                 if (i == 0) {if (char(priceString[i]) == 48) priceString[i] = char(' ');}
-            } FlightCost = "Cost:EUR" + priceString; fCheck[0] = true; break;
-    case 2: SetValue(3,2,3); DepartureAirport = iataString; fCheck[1] = true; break;
-    case 3: SetValue(3,3,10); DepartureDate = dateString; departureDay = dayInt; departureMonth = monthInt; departureYear = yearInt; fCheck[2] = true; break;
-    case 4: SetValue(2,4,5); DepartureTime = timeString; departureHour = hourInt; departureMinute = minuteInt;  fCheck[3] = true; break;
-    case 5: SetValue(3,2,3); ArrivalAirport = iataString; fCheck[4] = true; break;
-    case 6: SetValue(3,3,10); ArrivalDate = dateString; arrivalDay = dayInt; arrivalMonth = monthInt; arrivalYear = yearInt; fCheck[5] = true; break;
-    case 7: SetValue(2,4,5); ArrivalTime = timeString; arrivalHour = hourInt; arrivalMinute = minuteInt; fCheck[6] = true; break;
+            } flCost = "Cost:EUR" + priceString; fCheck[0] = true; break;
+    case 2: SetValue(3,2,3); depCode = iataString; fCheck[1] = true; break;
+    case 3: SetValue(3,3,10); depDate = dateString; depDay = dayInt; depMonth = monthInt; depYear = yearInt; fCheck[2] = true; break;
+    case 4: SetValue(2,4,5); depTime = timeString; depHour = hourInt; depMinute = minuteInt;  fCheck[3] = true; break;
+    case 5: SetValue(3,2,3); ariCode = iataString; fCheck[4] = true; break;
+    case 6: SetValue(3,3,10); ariDate = dateString; ariDay = dayInt; ariMonth = monthInt; ariYear = yearInt; fCheck[5] = true; break;
+    case 7: SetValue(2,4,5); ariTime = timeString; ariHour = hourInt; ariMinute = minuteInt; fCheck[6] = true; break;
     case 8: Continue(); break;
     case 9: Continue(); break;
     default: break;
     }
 }
-
 void TicketCreate::SetValue(int sMax, int wSet, int wLoop) {
     priceString = "0000.00"; iataString = "???"; dateString = "01.01.2019"; timeString = "00:00";
     jCost = 0;  dayInt = monthInt = 1; yearInt = 2019; hourInt = 0; minuteInt = 0;
@@ -232,7 +219,6 @@ void TicketCreate::Update(int wSet, int s, int x) {
     }
 }
 void TicketCreate::UpdateCost(int crease, int s) {
-
     // String Cost -> Float Cost && Update Cost -> String Cost
     char buffer [33]; string coststring[7]; float costfloat[7]; jCost = 0;
     for (int i = 0; i < 7; i++) {if(i != 4) costfloat[i] = float(priceString[i]) - 48;}
@@ -313,66 +299,70 @@ void TicketCreate::Print(int x, int y, int s, int wSet, int wLoop) {
     } gotoXY(0,0);
 }
 
-void TicketCreate::CheckDateAndTime() {
-    int *t = TicketTime(); int months[12] = {31,28,31,30,31,30,31,31,30,31,30,31}; int iHour = 0, iMinute = 0;
-    bool timeError = 0; string Fill(22, ' '); string TotalHour, TotalMinute; char buffer [33];
-    int sYear = t[0], sMonth = t[1], sDay = t[2], sHour = t[3], sMinute = t[4];
-    int fYear = t[5], fMonth = t[6], fDay = t[7], fHour = t[8], fMinute = t[9];
-    string errFlightDuration = "Flights must be greater than 24 hours";
 
-	int year = sYear - fYear;
-        if ((year > 1) || (year > 0 && (fMonth != 12 || sMonth != 1 || fDay != 31 || sDay != 1))) timeError = 1;
-        if (year < 0) timeError = 1;
-    int month = sMonth - fMonth;
-        if ((month > 0 && (sMonth != fMonth + 1  || fDay != months[fMonth] || sDay != 1))) timeError = 1;
-        if (month < 0 && sYear != fYear + 1 && (fMonth != 12 || sMonth != 1)) timeError = 1;
-    int day = sDay - fDay;
-        if (day > 0 && day != 1) timeError = 1;
-        if (day < 0 && sYear == fYear && (sMonth != fMonth + 1 || fDay != months[fMonth] || sDay != 1)) timeError = 1;
-    int hour = sHour - fHour;
-        if (hour > 0 && day != 0) timeError = 1; if (hour < 0 && day == 0) timeError = 1;
-    int minute = sMinute - fMinute;
-        if (minute > 0 && day != 0 && sHour == fHour) timeError = 1;
-        if (minute < 0 && day == 0 && sHour == fHour) timeError = 1;
 
-    if (fDay == sDay) {
-        if (minute == 0) {iMinute = 0; iHour = (fHour - sHour) * -1;}
-        if (sMinute > fMinute) {iMinute = minute; iHour = hour;}
-        if (sMinute < fMinute) {iMinute = (60 - fMinute) + sMinute; iHour = hour - 1;}
-    }
-    if (fDay < sDay || sDay < fDay) {
-        if (minute == 0) {iMinute = 0; iHour = (24 - fHour) + sHour;}
-        if (sMinute > fMinute) {iMinute = minute; iHour = (24 - fHour) + sHour;}
-        if (sMinute < fMinute) {iMinute = (60 - fMinute) + sMinute; iHour = ((24 - fHour) + sHour) - 1;}
-    }
-
-    //    if(timeError == true) gotoXY(0,0,errFlightDuration,1); - ? Flight Error
-    TotalHour = itoa (iHour,buffer,10); if (iMinute == 0) TotalMinute = "0"; else TotalMinute = itoa (iMinute,buffer,10);
-    if (timeError != 1) {FlightDuration = "EXPECTED FLIGHT TIME: " + TotalHour + "Hours " + TotalMinute + "Minutes"; }
-    else {fCheck[5] = 0; fCheck[6] = 0; ArrivalDate = "00.00.0000"; ArrivalTime = "00:00"; ErrorPrompt(errFlightDuration);}
+char **TicketCreate::TicketData() {
+    string transfer; int x = 0; char **arr=new char*[6];
+    while(x < 6) {
+        switch(x) {
+        case 0: transfer = depCode; break;
+        case 1: transfer = depDate; break;
+        case 2: transfer = depTime; break;
+        case 3: transfer = ariCode; break;
+        case 4: transfer = ariDate; break;
+        case 5: transfer = ariTime; break;
+        default: break;
+        } arr[x] = new char[transfer.length()];
+        for (int i=0; i<transfer.length()+1; i++) {arr[x][i] = transfer[i];}
+        x++;
+    } return arr;
 }
+int* TicketCreate::TicketTime() {
+    int* arr = new int[10];
+        arr[0] = ariYear; arr[1] = ariMonth; arr[2] = ariDay; arr[3] = ariHour; arr[4] = ariMinute;
+        arr[5] = depYear; arr[6] = depMonth; arr[7] = depDay; arr[8] = depHour; arr[9] = depMinute;
+    return arr;
+}
+void TicketCreate::CheckDateAndTime(int first[], int second[], bool func) {
+    int tolDays = 0, hours = 0, minutes = 0; string hour, minute; char buffer[33];
+    for (int i = first[5]; i <= second[0]; i++) {
+        int mList[12] = {31,28,31,30,31,30,31,31,30,31,30,31}, startMonth = 1, endMonth = 12;
+        if (i == second[0]) endMonth = second[1], mList[endMonth - 1] = (second[2]);
+        if (i == first[5]) startMonth = first[6], mList[startMonth - 1] -= (first[7]);
+        if (((i % 4 == 0) && (i % 100 != 0)) || (i % 400 == 0)) mList[1] = 29;
+        for (int x = startMonth; x <= endMonth; x++) {tolDays += mList[x - 1];}
+    }
+    hours = (tolDays * 24) + (second[3] - first[8]), minutes = second[4] - first[9];
+    if (minutes < 0) {hours -= 1; minutes += 60;}
+    hour = itoa(hours,buffer,10), minute = itoa(minutes,buffer,10);
+    if ((func == 0) && ((hours < 0) || (hours > 24) || (hours == 24 && minutes > 0))) {
+        hour = "0", minute = "0", fCheck[5] = 0, fCheck[6] = 0,
+        ariDate = "00.00.0000", ariTime = "00:00"; ErrorPrompt("Error");
+    } flDur = "EXPECTED FLIGHT TIME: " + hour + "Hours " + minute + "Minutes";
+}
+
+
+
 void TicketCreate::DepartureCheck() {
     for (int i=0;i<5;i++) DateCheck[i] = true;
-    DateCheck[0] = (dLim[0] > departureYear) ? false : true;
-    DateCheck[1] = (dLim[0] == departureYear && dLim[1] > departureMonth) ? false : true;
-    DateCheck[2] = (dLim[0] == departureYear && dLim[1] == departureMonth && dLim[2] > departureDay) ? false : true;
-    DateCheck[3] = (dLim[0] == departureYear && dLim[1] == departureMonth && dLim[2] == departureDay && dLim[3] > departureHour) ? false : true;
-    DateCheck[4] = (dLim[0] == departureYear && dLim[1] == departureMonth && dLim[2] == departureDay && dLim[3] == departureHour && dLim[4] > departureMinute) ? false : true;
+    DateCheck[0] = (depChk[0] > depYear) ? false : true;
+    DateCheck[1] = (depChk[0] == depYear && depChk[1] > depMonth) ? false : true;
+    DateCheck[2] = (depChk[0] == depYear && depChk[1] == depMonth && depChk[2] > depDay) ? false : true;
+    DateCheck[3] = (depChk[0] == depYear && depChk[1] == depMonth && depChk[2] == depDay && depChk[3] > depHour) ? false : true;
+    DateCheck[4] = (depChk[0] == depYear && depChk[1] == depMonth && depChk[2] == depDay && depChk[3] == depHour && depChk[4] > depMinute) ? false : true;
     string errFlightStart = "Departure must be after first arrival";
 
     for (int i=0;i<5;i++) {
         if (DateCheck[i] == false && fCheck[2] == true) {
             fCheck[2] = false; fCheck[3] = false;
-            DepartureDate = "00.00.0000"; DepartureTime = "00:00";
+            depDate = "00.00.0000"; depTime = "00:00";
             ErrorPrompt(errFlightStart); Print();
         }
     }
 }
 void TicketCreate::ErrorPrompt(string errString) {
     system("CLS"); int c = 0; int s = 0; int h; bool errorBreak = 0;
-        string FillOne(71,'\xDB'); string FillTwo(67,' ');
-        for(int i = 0; i < 17; i++) gotoXY(22,6+i,FillOne,0);
-        for(int i = 0; i < 15; i++) gotoXY(24,7+i,FillTwo,0);
+    Draw(2,24,6,71,17);
             while(errorBreak == 0) {
                 c = 0;
                 gotoXY(39,9,"["+errString+"]",0);

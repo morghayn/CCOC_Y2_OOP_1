@@ -6,9 +6,9 @@ using namespace std;
 
 class TicketCreate {
     public:
-        TicketCreate(string title, int time[]); TicketCreate(string name, float TotalCost, char **first, char **second, int fTime[], int sTime[]);
+        TicketCreate(string title, int time[]); TicketCreate(string name, float TotalCost, char **first, char **second, string duration, string timeone, string timetwo);
         void SummaryIntro(string name, string depCode, string arrAirport); void PrintFileSpalsh(); void ErrorPrompt(string errString);
-        void Control(); void ExecuteSetter(int s); void Continue(); void CheckDateAndTime(int first[], int second[], bool func); void DepartureCheck();
+        void Control(); void ExecuteSetter(int s); void Continue(); void CheckDateAndTime(); void DepartureCheck();
 
         // Getters
         int* TicketTime(); char **TicketData(); float getCost() {return JourneyCost;}
@@ -20,11 +20,11 @@ class TicketCreate {
         void Print(); void Print(int x); void Print(int x, int y, int s, int wSet, int wLoop);
     private:
         bool quitProgram, ticketControl, fCheck[8], DateCheck[5], backBool; float JourneyCost;
-        string flCost, flDur, tikName;
+        string flCost, flDur, tikName; int depChk[5];
 
         // Departure Variables
         string depCode, depDate, depTime;
-        int depDay, depMonth, depYear, depHour, depMinute, depChk[5];
+        int depDay, depMonth, depYear, depHour, depMinute;
 
         // Arrival Variables
         string ariCode, ariDate, ariTime;

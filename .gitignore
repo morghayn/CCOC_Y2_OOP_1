@@ -2,3 +2,4 @@
 report.o
 main.o
 *.o
+main.exe
